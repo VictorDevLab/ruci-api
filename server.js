@@ -39,6 +39,8 @@ app.use("/test", express.static(path.join(__dirname, "/public")));
 app.use("/", require('./routes/root'))
 app.use("/test", require('./routes/subdir'))
 
+app.use("/employees", require('./routes/api/employees'))
+
 
 // app.get("/*", (req, res) => {
 //   //by default it gets the status 200(ok) because the file exits
