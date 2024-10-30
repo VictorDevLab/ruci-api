@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const corsOptions = require("./config/corsOptions")
 const PORT = process.env.PORT || 3500;
 const path = require("path");
 
@@ -8,37 +9,14 @@ const path = require("path");
 app.use((req, res, next) => {
   next();
 });
-//Cross-origin Resource Sharing
-const whiteList = [
-  "https://www.googdle.com",
-  "http://127.0.0.1:3500",
-  "http://localhost:3500",
-];
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (whiteList.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by cors--"));
-    }
-  },
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-//for handling form data(built-in)
-app.use(express.urlencoded({ extended: false }));
 
-//built in middlewear for json(built-in)
+app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 //middlewear for serving static files(built-in)
 app.use("/", express.static(path.join(__dirname, "/public")));
-app.use("/test", express.static(path.join(__dirname, "/public")));
-
-//app.use("/test", require('./routes/subdir'))
 
 app.use("/", require('./routes/root'))
-app.use("/test", require('./routes/subdir'))
-
 app.use("/employees", require('./routes/api/employees'))
 
 
