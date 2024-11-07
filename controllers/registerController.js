@@ -20,8 +20,8 @@ const handleNewUser = async (req, res) => {
   if (duplicate) return res.sendStatus(409); //conflict
 
   try {
-
-  } catch(err) {
-    return 
+    //save the person in the db
+  } catch (err) {
+    return;
   }
 };
