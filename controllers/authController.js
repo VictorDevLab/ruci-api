@@ -23,7 +23,7 @@ const handleLogin = async (req, res) => {
 
   console.log("found user", foundUser);
   if (!foundUser) return res.sendStatus(401); //Unauthorized
-
+  //evaluate the password
   const match = await bcrypt.compare(password, foundUser.password);
   if (match) {
     //create JWT
@@ -32,7 +32,29 @@ const handleLogin = async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "30s" }
     );
-    res.json({ success: `User ${user} is logged in` });
+    const refreshToken = jwt.sign(
+      { username: foundUser.username },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+    //save the refresh token with the current user
+    const otherUsers = usersDB.users.filter(
+      (user) => user.username !== foundUser.username
+    );
+    const currentUser = { ...foundUser, refreshToken };
+    usersDB.setUsers([...otherUsers, currentUser]);
+
+    await fsPromises.writeFile(
+      "models/users.json",
+      usersDB.users,
+      JSON.stringify(usersDB.users)
+    );
+    //reduce possible attacks from cross-site scripting
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    res.json(accessToken);
   } else {
     res.sendStatus(401); //Unauthorized
   }
