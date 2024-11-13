@@ -30,7 +30,7 @@ const handleLogin = async (req, res) => {
     const accessToken = jwt.sign(
       { username: foundUser.username },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "30s" }
+      { expiresIn: "60s" }
     );
     const refreshToken = jwt.sign(
       { username: foundUser.username },
@@ -45,14 +45,13 @@ const handleLogin = async (req, res) => {
     usersDB.setUsers([...otherUsers, currentUser]);
 
     await fsPromises.writeFile(
-      "models/users.json",
-      usersDB.users,
+      path.join(__dirname, "..", "users.json"),
       JSON.stringify(usersDB.users)
     );
     //reduce possible attacks from cross-site scripting
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, //one day
     });
     res.json(accessToken);
   } else {
