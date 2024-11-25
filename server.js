@@ -1,10 +1,11 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const corsOptions = require("./config/corsOptions")
+const corsOptions = require("./config/corsOptions");
 const PORT = process.env.PORT || 3500;
 const path = require("path");
-
+const cookieParser = require("cookie-parser");
+const verifyJWT = require("./middleware/verifyJWT");
 //custom Middlewear
 app.use((req, res, next) => {
   next();
@@ -16,11 +17,16 @@ app.use(express.json());
 //middlewear for serving static files(built-in)
 app.use("/", express.static(path.join(__dirname, "/public")));
 
-app.use("/", require('./routes/root'))
-app.use("/register", require('./routes/register'))
-app.use("/auth", require('./routes/auth'))
-app.use("/employees", require('./routes/api/employees'))
+//middleware for cookies
+app.use(cookieParser());
+//routes
+app.use("/", require("./routes/root"));
+app.use("/register", require("./routes/register"));
+app.use("/auth", require("./routes/auth"));
+app.use("/refresh", require("./routes/refresh"));
 
+app.use(verifyJWT);
+app.use("/employees", require("./routes/api/employees"));
 
 // app.get("/*", (req, res) => {
 //   //by default it gets the status 200(ok) because the file exits
@@ -34,9 +40,9 @@ app.all("*", (req, res) => {
   if (req.accepts("html")) {
     res.sendFile(path.join(__dirname, "views", "404.html"));
   } else if (req.accepts("json")) {
-    res.json({error: "Not Found!"})
+    res.json({ error: "Not Found!" });
   } else {
-    res.type('txt').send("Not Found as Well!")
+    res.type("txt").send("Not Found as Well!");
   }
 });
 
